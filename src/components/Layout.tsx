@@ -15,7 +15,7 @@ const Layout = ({ children }: LayoutProps) => {
             <img 
               src={logo} 
               alt="College Park Community Preservation Trust" 
-              className="h-20 w-auto"
+              className="h-32 w-auto"
             />
           </Link>
         </div>

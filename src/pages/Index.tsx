@@ -1,10 +1,34 @@
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
+import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Home, FileText, Users } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Home, FileText, Users, LogOut, Shield } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
+  const { user, isAdmin, loading, signOut } = useAuth();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate("/auth");
+    }
+  }, [user, loading, navigate]);
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-16">
+          <p className="text-center">Loading...</p>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
 
   const cards = [
     {
@@ -34,13 +58,27 @@ const Index = () => {
     <Layout>
       <div className="container mx-auto px-4 py-16">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <h1 className="text-4xl md:text-5xl font-bold text-primary mb-4">
-              Welcome to College Park Community Preservation Trust
-            </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Building affordable homeownership opportunities and preserving community connections
-            </p>
+          <div className="flex justify-between items-center mb-8">
+            <div className="text-center flex-1">
+              <h1 className="text-4xl md:text-5xl font-bold text-primary mb-4">
+                Welcome to College Park Community Preservation Trust
+              </h1>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                Building affordable homeownership opportunities and preserving community connections
+              </p>
+            </div>
+            <div className="flex gap-2">
+              {isAdmin && (
+                <Button variant="outline" onClick={() => navigate("/admin")}>
+                  <Shield className="mr-2 h-4 w-4" />
+                  Admin
+                </Button>
+              )}
+              <Button variant="outline" onClick={signOut}>
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+              </Button>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
