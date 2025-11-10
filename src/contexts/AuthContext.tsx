@@ -7,6 +7,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   isAdmin: boolean;
+  isHomeowner: boolean;
   loading: boolean;
   signOut: () => Promise<void>;
 }
@@ -17,26 +18,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isHomeowner, setIsHomeowner] = useState(false);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const checkAdminStatus = async (userId: string) => {
+  const checkUserRoles = async (userId: string) => {
     try {
       const { data, error } = await supabase
         .from("user_roles")
         .select("role")
-        .eq("user_id", userId)
-        .eq("role", "admin")
-        .maybeSingle();
+        .eq("user_id", userId);
 
       if (!error && data) {
-        setIsAdmin(true);
+        const roles = data.map(r => r.role);
+        setIsAdmin(roles.includes("admin"));
+        setIsHomeowner(roles.includes("homeowner"));
       } else {
         setIsAdmin(false);
+        setIsHomeowner(false);
       }
     } catch (error) {
-      console.error("Error checking admin status:", error);
+      console.error("Error checking user roles:", error);
       setIsAdmin(false);
+      setIsHomeowner(false);
     }
   };
 
@@ -49,10 +53,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         if (session?.user) {
           setTimeout(() => {
-            checkAdminStatus(session.user.id);
+            checkUserRoles(session.user.id);
           }, 0);
         } else {
           setIsAdmin(false);
+          setIsHomeowner(false);
         }
         setLoading(false);
       }
@@ -65,7 +70,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       if (session?.user) {
         setTimeout(() => {
-          checkAdminStatus(session.user.id);
+          checkUserRoles(session.user.id);
         }, 0);
       }
       setLoading(false);
@@ -79,11 +84,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
     setSession(null);
     setIsAdmin(false);
+    setIsHomeowner(false);
     navigate("/auth");
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, isAdmin, loading, signOut }}>
+    <AuthContext.Provider value={{ user, session, isAdmin, isHomeowner, loading, signOut }}>
       {children}
     </AuthContext.Provider>
   );

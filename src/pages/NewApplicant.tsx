@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
 import PersonalInfo from "@/components/application/PersonalInfo";
 import AgentInfo from "@/components/application/AgentInfo";
@@ -11,18 +12,149 @@ import HouseSelection from "@/components/application/HouseSelection";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 const TOTAL_STEPS = 8;
 
 const NewApplicant = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState({});
+  const [formData, setFormData] = useState<any>({});
+  const [applicationId, setApplicationId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Load existing application if any
+  useEffect(() => {
+    const loadApplication = async () => {
+      if (!user) return;
+
+      try {
+        const { data, error } = await supabase
+          .from("applications")
+          .select("*")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (!error && data) {
+          setApplicationId(data.id);
+          setFormData({
+            firstName: data.first_name,
+            lastName: data.last_name,
+            email: data.email,
+            phone: data.phone,
+            dateOfBirth: data.date_of_birth,
+            ssn: data.ssn,
+            driversLicense: data.drivers_license,
+            maritalStatus: data.marital_status,
+            currentAddress: data.current_address,
+            city: data.city,
+            state: data.state,
+            zipCode: data.zip_code,
+            yearsAtAddress: data.years_at_address,
+            ownOrRent: data.own_or_rent,
+            employer: data.employer,
+            occupation: data.occupation,
+            yearsEmployed: data.years_employed,
+            annualIncome: data.annual_income,
+            additionalIncome: data.additional_income,
+            creditScore: data.credit_score,
+            householdMembers: data.household_members || [],
+            firstTimeBuyer: data.first_time_buyer,
+            preApproved: data.pre_approved,
+            downPaymentAmount: data.down_payment_amount,
+            lakelandConnection: data.lakeland_connection,
+            lakelandDetails: data.lakeland_details,
+            references: data.personal_references || [],
+            agentName: data.agent_name,
+            agentPhone: data.agent_phone,
+            agentEmail: data.agent_email,
+            selectedHouses: data.selected_houses || [],
+            joinWaitlist: data.join_waitlist,
+          });
+        }
+      } catch (error) {
+        console.error("Error loading application:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadApplication();
+  }, [user]);
 
   const updateFormData = (stepData: any) => {
-    setFormData((prev) => ({ ...prev, ...stepData }));
+    setFormData((prev: any) => ({ ...prev, ...stepData }));
   };
 
-  const handleNext = () => {
+  // Auto-save as draft
+  const saveApplication = async (status: string = "draft") => {
+    if (!user) return;
+
+    try {
+      const applicationData = {
+        user_id: user.id,
+        status,
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        email: formData.email,
+        phone: formData.phone,
+        date_of_birth: formData.dateOfBirth,
+        ssn: formData.ssn,
+        drivers_license: formData.driversLicense,
+        marital_status: formData.maritalStatus,
+        current_address: formData.currentAddress,
+        city: formData.city,
+        state: formData.state,
+        zip_code: formData.zipCode,
+        years_at_address: formData.yearsAtAddress,
+        own_or_rent: formData.ownOrRent,
+        employer: formData.employer,
+        occupation: formData.occupation,
+        years_employed: formData.yearsEmployed,
+        annual_income: formData.annualIncome,
+        additional_income: formData.additionalIncome,
+        credit_score: formData.creditScore,
+        household_members: formData.householdMembers || [],
+        first_time_buyer: formData.firstTimeBuyer,
+        pre_approved: formData.preApproved,
+        down_payment_amount: formData.downPaymentAmount,
+        lakeland_connection: formData.lakelandConnection,
+        lakeland_details: formData.lakelandDetails,
+        personal_references: formData.references || [],
+        agent_name: formData.agentName,
+        agent_phone: formData.agentPhone,
+        agent_email: formData.agentEmail,
+        selected_houses: formData.selectedHouses || [],
+        join_waitlist: formData.joinWaitlist,
+      };
+
+      if (applicationId) {
+        const { error } = await supabase
+          .from("applications")
+          .update(applicationData)
+          .eq("id", applicationId);
+
+        if (error) throw error;
+      } else {
+        const { data, error } = await supabase
+          .from("applications")
+          .insert([applicationData])
+          .select()
+          .single();
+
+        if (error) throw error;
+        setApplicationId(data.id);
+      }
+    } catch (error) {
+      console.error("Error saving application:", error);
+      toast.error("Failed to save application");
+    }
+  };
+
+  const handleNext = async () => {
+    await saveApplication("draft");
     if (currentStep < TOTAL_STEPS) {
       setCurrentStep(currentStep + 1);
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -36,9 +168,10 @@ const NewApplicant = () => {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    await saveApplication("submitted");
     toast.success("Application submitted successfully!");
-    console.log("Form Data:", formData);
+    navigate("/");
   };
 
   const renderStep = () => {
@@ -63,6 +196,16 @@ const NewApplicant = () => {
         return null;
     }
   };
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-16">
+          <p className="text-center">Loading...</p>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>

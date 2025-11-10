@@ -14,6 +14,164 @@ export type Database = {
   }
   public: {
     Tables: {
+      applications: {
+        Row: {
+          additional_income: number | null
+          admin_notes: string | null
+          agent_email: string | null
+          agent_name: string | null
+          agent_phone: string | null
+          annual_income: number | null
+          city: string | null
+          created_at: string
+          credit_score: number | null
+          current_address: string | null
+          date_of_birth: string | null
+          down_payment_amount: number | null
+          drivers_license: string | null
+          email: string | null
+          employer: string | null
+          first_name: string | null
+          first_time_buyer: boolean | null
+          household_members: Json | null
+          id: string
+          join_waitlist: boolean | null
+          lakeland_connection: boolean | null
+          lakeland_details: string | null
+          last_name: string | null
+          marital_status: string | null
+          occupation: string | null
+          own_or_rent: string | null
+          personal_references: Json | null
+          phone: string | null
+          pre_approved: boolean | null
+          selected_houses: Json | null
+          ssn: string | null
+          state: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          years_at_address: number | null
+          years_employed: number | null
+          zip_code: string | null
+        }
+        Insert: {
+          additional_income?: number | null
+          admin_notes?: string | null
+          agent_email?: string | null
+          agent_name?: string | null
+          agent_phone?: string | null
+          annual_income?: number | null
+          city?: string | null
+          created_at?: string
+          credit_score?: number | null
+          current_address?: string | null
+          date_of_birth?: string | null
+          down_payment_amount?: number | null
+          drivers_license?: string | null
+          email?: string | null
+          employer?: string | null
+          first_name?: string | null
+          first_time_buyer?: boolean | null
+          household_members?: Json | null
+          id?: string
+          join_waitlist?: boolean | null
+          lakeland_connection?: boolean | null
+          lakeland_details?: string | null
+          last_name?: string | null
+          marital_status?: string | null
+          occupation?: string | null
+          own_or_rent?: string | null
+          personal_references?: Json | null
+          phone?: string | null
+          pre_approved?: boolean | null
+          selected_houses?: Json | null
+          ssn?: string | null
+          state?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          years_at_address?: number | null
+          years_employed?: number | null
+          zip_code?: string | null
+        }
+        Update: {
+          additional_income?: number | null
+          admin_notes?: string | null
+          agent_email?: string | null
+          agent_name?: string | null
+          agent_phone?: string | null
+          annual_income?: number | null
+          city?: string | null
+          created_at?: string
+          credit_score?: number | null
+          current_address?: string | null
+          date_of_birth?: string | null
+          down_payment_amount?: number | null
+          drivers_license?: string | null
+          email?: string | null
+          employer?: string | null
+          first_name?: string | null
+          first_time_buyer?: boolean | null
+          household_members?: Json | null
+          id?: string
+          join_waitlist?: boolean | null
+          lakeland_connection?: boolean | null
+          lakeland_details?: string | null
+          last_name?: string | null
+          marital_status?: string | null
+          occupation?: string | null
+          own_or_rent?: string | null
+          personal_references?: Json | null
+          phone?: string | null
+          pre_approved?: boolean | null
+          selected_houses?: Json | null
+          ssn?: string | null
+          state?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          years_at_address?: number | null
+          years_employed?: number | null
+          zip_code?: string | null
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          application_id: string
+          created_at: string
+          id: string
+          is_admin: boolean
+          message: string
+          sender_id: string
+        }
+        Insert: {
+          application_id: string
+          created_at?: string
+          id?: string
+          is_admin?: boolean
+          message: string
+          sender_id: string
+        }
+        Update: {
+          application_id?: string
+          created_at?: string
+          id?: string
+          is_admin?: boolean
+          message?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string | null
@@ -35,6 +193,30 @@ export type Database = {
           full_name?: string | null
           id?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      properties: {
+        Row: {
+          address: string
+          created_at: string
+          homeowner_id: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          address: string
+          created_at?: string
+          homeowner_id?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string
+          created_at?: string
+          homeowner_id?: string | null
+          id?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -70,7 +252,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "applicant"
+      app_role: "admin" | "applicant" | "homeowner"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -198,7 +380,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "applicant"],
+      app_role: ["admin", "applicant", "homeowner"],
     },
   },
 } as const
